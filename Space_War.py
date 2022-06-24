@@ -48,11 +48,13 @@ Hit_Sound=mixer.Sound("Assets\hit_sound.mp3")
 Fire_Sound=mixer.Sound('Assets\Gun_Sound.mp3')
 Hit_Sound.set_volume(0.5)
 Fire_Sound.set_volume(0.5)
+
 #Fonts
 score_f=font.SysFont('arial', 30)
 GameOver_f=font.SysFont('arial', 100)
 starter_font=font.SysFont('arial', 60)
 game_f=font.SysFont('arial', 120)
+
 #Lists
 enemy_l=[]
 enemy_li=[]
@@ -69,72 +71,138 @@ screen=display.set_mode((WD,HT))
 display.set_caption('Space War')
 display.set_icon(icon_)
 
-def values():
-    global hero,alpha,Score,Lives,Health,max_enemy,space,beta,iit
-    iit=-1
-    Health=10
-    max_enemy=1
-    Lives=5
-    Score=0
-    alpha=0
-    beta=AMMO
-    hero=Rect(500,600,100,100)
-    space=space2
-    mixer.music.rewind()
-    
-    
 
-values()
-def change():
-    global space,iit
-    if iit<3:
-        iit+=1
-    else:
-        iit=0
-    space=Space[iit]
-def win_display(hero,Health,Lives,Score):
-    if Score%50!=0:
-        score_str='Score: {}'.format((Score-1))
-    elif Score%50==0:
-        score_str='Score: {}'.format((Score))
-    health_txt=score_f.render('Health: {}'.format(Health),True,(255,255,255))
-    lives_txt=score_f.render('Lives: {}'.format(Lives),True,(255,255,255))
-    play_again=starter_font.render('Press Enter To Play Again',True,(255,255,255))
-    score_txt=score_f.render(score_str,True,(255,255,255))
-    Game_Over_txt=GameOver_f.render('Game Over',True,(255,255,255))
-    screen.blit(space,(0,0))
-    screen .blit(hero_i,(hero.x,hero.y))
-    screen.blit(health_txt,(10,20))
-    screen.blit(lives_txt,(500,20))
-    
-    screen.blit(score_txt,(250,20))
-    
-    if alpha==AMMO:
-        ammo_txt=score_f.render('Ammo: Reloading...',True,(255,255,255))
-    else:
-        ammo_txt=score_f.render('Ammo: {}'.format(beta),True,(255,255,255))
+class hero__:
+    @staticmethod
+    def hero_movement(key_):
+        if Lives!=0:
+            if key_[K_LEFT] and hero.x>-10:    #LEFT
+                hero.x-=HERO_VEL
+            if key_[K_RIGHT] and hero.x<(WD-90):   #RIGHT
+                hero.x+=HERO_VEL
+            if key_[K_UP] and hero.y>(3*(HT/4))-40:  #UP
+                hero.y-=HERO_VEL
+            if key_[K_DOWN] and hero.y<(HT-101):    #DOWN
+                hero.y+=HERO_VEL
+class enemy__:
+    @staticmethod
+    def enemy():
+        while len(enemy_l)+1<=max_enemy:
+            enemy_rect=Rect(randint(0,WD-65),randint(-500,-65),64,64)
+            bullet_rect=Rect(enemy_rect.x+15,enemy_rect.y,32,32)
+            starter=randint(0,100)
+            enemy_l.append(enemy_rect)
+            bullet_l.append(bullet_rect)
+            bullet_li.append(bullet)
+            tb.append(0)
+            starter_l.append(starter)
+            enemy_li.append(enemy1)
+            
+    @staticmethod
+    def enemy_movement():
+        for i in range(len(enemy_l)):
+            if Lives!=0:
+                enemy_l[i].y+=ENEMY_VEL
+        for i in enemy_l:
+            if i.y>HT+2 or hero.colliderect(i):
+                if hero.colliderect(i):
+                    Hit_Sound.play()
+                a=enemy_l.index(i)
+                enemy_l.remove(i)
+                bullet_l.pop(a)
+                tb.pop(a)
+                enemy_li.pop(-1)
+                bullet_li.pop(-1)
+                starter_l.pop(-1)
+                event.post(event.Event(HERO_HIT))
+class display__:
+    @staticmethod
+    def win_display(hero,Health,Lives,Score):
+        if Score%50!=0:
+            score_str='Score: {}'.format((Score-1))
+        elif Score%50==0:
+            score_str='Score: {}'.format((Score))
+        health_txt=score_f.render('Health: {}'.format(Health),True,(255,255,255))
+        lives_txt=score_f.render('Lives: {}'.format(Lives),True,(255,255,255))
+        play_again=starter_font.render('Press Enter To Play Again',True,(255,255,255))
+        score_txt=score_f.render(score_str,True,(255,255,255))
+        Game_Over_txt=GameOver_f.render('Game Over',True,(255,255,255))
+        screen.blit(space,(0,0))
+        screen .blit(hero_i,(hero.x,hero.y))
+        screen.blit(health_txt,(10,20))
+        screen.blit(lives_txt,(500,20))
         
-    
-    for j in range(len(enemy_l)):
-        screen .blit(enemy_li[j],(enemy_l[j].x,enemy_l[j].y))
-        if enemy_l[j].y>starter_l[j] and Lives!=0 and bullet_l[j].y>enemy_l[j].y:
-            screen .blit(bullet_li[j],(bullet_l[j].x,bullet_l[j].y))
-    for i in range(len(missile_l)):
-        screen .blit(missile_li[i],(missile_l[i].x,missile_l[i].y))
-    if Lives==0:
-        screen.blit(Game_Over_txt,((WD/2-Game_Over_txt.get_width()/2),HT/2-100))
-        screen.blit(play_again,((WD/2-play_again.get_width()/2),HT/2+30))
-    screen.blit(ammo_txt,(750,20))
-def hero_movement(key_):
-    if Lives!=0:
-        if key_[K_LEFT] and hero.x>-10:    #LEFT
-            hero.x-=HERO_VEL
-        if key_[K_RIGHT] and hero.x<(WD-90):   #RIGHT
-            hero.x+=HERO_VEL
-        if key_[K_UP] and hero.y>(3*(HT/4))-40:  #UP
-            hero.y-=HERO_VEL
-        if key_[K_DOWN] and hero.y<(HT-101):    #DOWN
-            hero.y+=HERO_VEL
+        screen.blit(score_txt,(250,20))
+        
+        if alpha==AMMO:
+            ammo_txt=score_f.render('Ammo: Reloading...',True,(255,255,255))
+        else:
+            ammo_txt=score_f.render('Ammo: {}'.format(beta),True,(255,255,255))
+            
+        
+        for j in range(len(enemy_l)):
+            screen .blit(enemy_li[j],(enemy_l[j].x,enemy_l[j].y))
+            if enemy_l[j].y>starter_l[j] and Lives!=0 and bullet_l[j].y>enemy_l[j].y:
+                screen .blit(bullet_li[j],(bullet_l[j].x,bullet_l[j].y))
+        for i in range(len(missile_l)):
+            screen .blit(missile_li[i],(missile_l[i].x,missile_l[i].y))
+        if Lives==0:
+            screen.blit(Game_Over_txt,((WD/2-Game_Over_txt.get_width()/2),HT/2-100))
+            screen.blit(play_again,((WD/2-play_again.get_width()/2),HT/2+30))
+        screen.blit(ammo_txt,(750,20))
+
+    @staticmethod
+    def Start():
+        screen.fill((0,0,0))
+        starter_game=game_f.render('Space Wars',True,(0,96,255))
+        starter_start=starter_font.render('Press Enter To Begin',True,(0,96,255))
+        starter_txtins=score_f.render("How to Play",True,(0,96,255))
+        starter_txt1=score_f.render('1. Prevent the enemies from reaching your base.',True,(0,96,255))
+        starter_txt2=score_f.render('2. Shoot them using the SPACE BAR.',True,(0,96,255))
+        starter_txt3=score_f.render('3. When your health becomes zero, you lose one life',True,(0,96,255))
+        starter_txt4=score_f.render('4. Crashing with enemy will decrease your life.',True,(0,96,255))
+        starter_txt5=score_f.render('5. Move the hero using ARROW KEYS.',True,(0,96,255))
+        starter_txt6=score_f.render('6. Be careful of the enemy firearms',True,(0,96,255))
+        starter_txt7=score_f.render('7. Press R to reload',True,(0,96,255))
+
+        screen.blit(starter_game,(WD/2-starter_game.get_width()/2,100))
+        screen.blit(starter_start,(WD/2-starter_start.get_width()/2,HT/2-100))
+        screen.blit(starter_txtins,(WD/2-starter_start.get_width()/2,HT/2-10))
+        screen.blit(starter_txt1,(WD/2-starter_start.get_width()/2,HT/2+35))
+        screen.blit(starter_txt2,(WD/2-starter_start.get_width()/2,HT/2+70))
+        screen.blit(starter_txt3,(WD/2-starter_start.get_width()/2,HT/2+105))
+        screen.blit(starter_txt4,(WD/2-starter_start.get_width()/2,HT/2+140))
+        screen.blit(starter_txt5,(WD/2-starter_start.get_width()/2,HT/2+175))
+        screen.blit(starter_txt6,(WD/2-starter_start.get_width()/2,HT/2+210))
+        screen.blit(starter_txt7,(WD/2-starter_start.get_width()/2,HT/2+245))
+class extra:
+    def values():
+        global hero,alpha,Score,Lives,Health,max_enemy,space,beta,iit
+        iit=-1
+        Health=10
+        max_enemy=1
+        Lives=5
+        Score=0
+        alpha=0
+        beta=AMMO
+        hero=Rect(500,600,100,100)
+        space=space2
+        mixer.music.rewind()
+
+    def change():
+        global space,iit
+        if iit<3:
+            iit+=1
+        else:
+            iit=0
+        space=Space[iit]
+        
+
+extra.values()
+
+
+
+
 
 def Ammunition_Movement(t):
     global tb
@@ -173,56 +241,8 @@ def Ammunition_Movement(t):
                 tb[i]=time.get_ticks()
                 missile_l.pop(collide)
                 missile_li.pop(-1)
-def enemy():
-    while len(enemy_l)+1<=max_enemy:
-        enemy_rect=Rect(randint(0,WD-65),randint(-500,-65),64,64)
-        bullet_rect=Rect(enemy_rect.x+15,enemy_rect.y,32,32)
-        starter=randint(0,100)
-        enemy_l.append(enemy_rect)
-        bullet_l.append(bullet_rect)
-        bullet_li.append(bullet)
-        tb.append(0)
-        starter_l.append(starter)
-        enemy_li.append(enemy1)
-def enemy_movement():
-    for i in range(len(enemy_l)):
-        if Lives!=0:
-            enemy_l[i].y+=ENEMY_VEL
-    for i in enemy_l:
-        if i.y>HT+2 or hero.colliderect(i):
-            if hero.colliderect(i):
-                Hit_Sound.play()
-            a=enemy_l.index(i)
-            enemy_l.remove(i)
-            bullet_l.pop(a)
-            tb.pop(a)
-            enemy_li.pop(-1)
-            bullet_li.pop(-1)
-            starter_l.pop(-1)
-            event.post(event.Event(HERO_HIT))
-def Start():
-    screen.fill((0,0,0))
-    starter_game=game_f.render('Space Wars',True,(0,96,255))
-    starter_start=starter_font.render('Press Enter To Begin',True,(0,96,255))
-    starter_txtins=score_f.render("How to Play",True,(0,96,255))
-    starter_txt1=score_f.render('1. Prevent the enemies from reaching your base.',True,(0,96,255))
-    starter_txt2=score_f.render('2. Shoot them using the SPACE BAR.',True,(0,96,255))
-    starter_txt3=score_f.render('3. When your health becomes zero, you lose one life',True,(0,96,255))
-    starter_txt4=score_f.render('4. Crashing with enemy will decrease your life.',True,(0,96,255))
-    starter_txt5=score_f.render('5. Move the hero using ARROW KEYS.',True,(0,96,255))
-    starter_txt6=score_f.render('6. Be careful of the enemy firearms',True,(0,96,255))
-    starter_txt7=score_f.render('7. Press R to reload',True,(0,96,255))
 
-    screen.blit(starter_game,(WD/2-starter_game.get_width()/2,100))
-    screen.blit(starter_start,(WD/2-starter_start.get_width()/2,HT/2-100))
-    screen.blit(starter_txtins,(WD/2-starter_start.get_width()/2,HT/2-10))
-    screen.blit(starter_txt1,(WD/2-starter_start.get_width()/2,HT/2+35))
-    screen.blit(starter_txt2,(WD/2-starter_start.get_width()/2,HT/2+70))
-    screen.blit(starter_txt3,(WD/2-starter_start.get_width()/2,HT/2+105))
-    screen.blit(starter_txt4,(WD/2-starter_start.get_width()/2,HT/2+140))
-    screen.blit(starter_txt5,(WD/2-starter_start.get_width()/2,HT/2+175))
-    screen.blit(starter_txt6,(WD/2-starter_start.get_width()/2,HT/2+210))
-    screen.blit(starter_txt7,(WD/2-starter_start.get_width()/2,HT/2+245))
+
 def main():
     global Health,Lives,Score,alpha,max_enemy,beta
     FPS=time.Clock()
@@ -238,7 +258,7 @@ def main():
             if i.type==KEYDOWN:
                 if i.key==K_KP_ENTER:
                     flag=False
-        Start()
+        display__.Start()
         display.update()
     if gamma==1:
         quit()
@@ -257,7 +277,7 @@ def main():
             
             if i.type==KEYDOWN:
                 if i.key==K_KP_ENTER and Lives==0:
-                    values()
+                    extra.values()
                     enemy_l.clear()
                     enemy_li.clear()
                     bullet_l.clear()
@@ -294,16 +314,20 @@ def main():
         if Score%500==0:
             Score+=1
             max_enemy+=1
-            change()
+            extra.change()
         
-        enemy()
-        win_display(hero,Health,Lives,Score)
-        hero_movement(key_)
-        enemy_movement()
+        enemy__.enemy()
+        display__.win_display(hero,Health,Lives,Score)
+        hero__.hero_movement(key_)
+        enemy__.enemy_movement()
         Ammunition_Movement(t)
     
         display.update()
     quit()
+
+
+
+    
 
 if __name__=='__main__':
     main()
